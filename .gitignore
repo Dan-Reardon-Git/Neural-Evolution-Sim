@@ -1,0 +1,19 @@
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local simulation state and generated exports
+best_population.pkl
+*.pkl
+adv_evo_log.jsonl
+*.jsonl
+
+# Local/editor files
+.env
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Neural Evolution Ecosystem</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.6em;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.35);
+    }
+
+    .header .subtitle {
+      font-size: 1.15em;
+      opacity: 0.95;
+      margin-bottom: 5px;
+    }
+
+    .header .version {
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+
+    /* Ribbon Controls */
+    .ribbon {
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 12px;
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .ribbon-section {
+      margin-bottom: 18px;
+    }
+
+    .ribbon-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .ribbon-title {
+      font-size: 1.15em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .ribbon-title span {
+      vertical-align: middle;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: flex-end;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      min-width: 150px;
+    }
+    .control-item.checkbox-item {
+      flex-direction: row;
+      align-items: center;
+      min-width: auto;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.88em;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .control-input {
+      padding: 9px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.92em;
+      transition: all 0.2s ease-in-out;
+    }
+    .control-input[type="range"] {
+      padding: 0;
+      height: auto;
+    }
+    .control-input[type="checkbox"] {
+      width: auto;
+      height: auto;
+      accent-color: #667eea;
+    }
+
+    .control-input:focus {
+      border-color: #667eea;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      text-transform: none;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #5a67d8 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #e073f0 0%, #e94b5f 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(245, 87, 108, 0.25);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 87, 108, 0.35);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #3cacfd 0%, #00e2fd 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79, 172, 254, 0.25);
+    }
+    .btn-success:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 172, 254, 0.35);
+    }
+    .btn-warning {
+      background: linear-gradient(135deg, #f8608a 0%, #fed130 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(250, 112, 154, 0.25);
+    }
+    .btn-warning:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(250, 112, 154, 0.35);
+    }
+    /* New Button Style for Chart Download */
+    .btn-info {
+      background: linear-gradient(135deg, #17a2b8 0%, #28a745 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(23, 162, 184, 0.25);
+    }
+    .btn-info:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(23, 162, 184, 0.35);
+    }
+
+    .status-panel {
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 12px;
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 18px;
+    }
+
+    .status-item {
+      text-align: center;
+      padding: 12px;
+      background: #f9faff;
+      border-radius: 8px;
+      border: 1px solid #e0e5ec;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .status-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .status-value {
+      font-size: 1.7em;
+      font-weight: 600;
+      color: #5a67d8;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .status-label {
+      font-size: 0.8em;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .progress-section {
+      margin-top: 18px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #dde2e8;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #5a67d8 0%, #764ba2 100%);
+      border-radius: 5px;
+      transition: width 0.25s ease-out;
+      width: 0%;
+    }
+    .progress-label {
+      font-size: 0.85em;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .console {
+      background: #2d3748;
+      color: #c3e88d;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      padding: 18px;
+      border-radius: 8px;
+      height: 220px;
+      overflow-y: auto;
+      font-size: 0.82em;
+      line-height: 1.5;
+      box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.2);
+      border: 1px solid #4a5568;
+    }
+    .console-line {
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .console-emoji {
+      margin-right: 6px;
+    }
+
+    #dynamicStatusLine {
+      color: #a0aec0;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      padding: 8px 18px;
+      font-size: 0.82em;
+      line-height: 1.5;
+      border-top: 1px solid #4a5568;
+      margin-top: 8px;
+      background-color: #273041;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      word-break: break-all;
+    }
+    #dynamicStatusLine span {
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      .header h1 {
+        font-size: 2.1em;
+      }
+      .control-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .status-grid {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+      }
+      .btn {
+        padding: 10px 15px;
+        font-size: 0.85em;
+      }
+    }
+    @media (max-width: 480px) {
+      .status-grid {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      }
+      .status-value {
+        font-size: 1.5em;
+      }
+      .status-label {
+        font-size: 0.75em;
+      }
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .btn.loading::after {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-left: 6px;
+    }
+
+    /* Toast notification system */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 14px 22px;
+      border-radius: 10px;
+      color: white;
+      font-size: 0.92em;
+      font-weight: 500;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      pointer-events: auto;
+      animation: toast-in 0.35s ease-out, toast-out 0.35s ease-in 3.65s forwards;
+      max-width: 380px;
+      backdrop-filter: blur(6px);
+    }
+    .toast-success { background: linear-gradient(135deg, #38a169, #2f855a); }
+    .toast-error   { background: linear-gradient(135deg, #e53e3e, #c53030); }
+    .toast-warning { background: linear-gradient(135deg, #d69e2e, #b7791f); }
+    .toast-info    { background: linear-gradient(135deg, #3182ce, #2b6cb0); }
+
+    /* Extinction banner */
+    .extinction-banner {
+      display: none;
+      background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      color: white;
+      padding: 18px 25px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      text-align: center;
+      box-shadow: 0 6px 25px rgba(229, 62, 62, 0.3);
+      animation: slide-in 0.4s ease-out;
+    }
+    .extinction-banner h3 { margin-bottom: 8px; font-size: 1.3em; }
+    .extinction-banner p { margin-bottom: 14px; opacity: 0.95; }
+    .extinction-banner .btn {
+      background: white;
+      color: #c53030;
+      font-weight: 600;
+    }
+
+    /* Drag-and-drop area */
+    .drop-zone {
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.2s;
+      cursor: pointer;
+      min-width: 200px;
+    }
+    .drop-zone.drag-over {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.08);
+    }
+    .drop-zone-text {
+      font-size: 0.85em;
+      color: #718096;
+    }
+    .drop-zone-file {
+      font-size: 0.85em;
+      color: #38a169;
+      font-weight: 500;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    .pulsing {
+      animation: pulse 1s ease-in-out;
+    }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in {
+      animation: slide-in 0.4s ease-out;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(40px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="container">
+    <div class="header slide-in">
+      <h1>🌱 Neural Evolution Seed 🧬</h1>
+      <div class="subtitle">A Self-Modifying Ecosystem of Competing Neural Agents</div>
+      <div class="version">v3.0</div>
+    </div>
+
+    <div class="extinction-banner" id="extinctionBanner">
+      <h3>💀 Ecosystem Extinct</h3>
+      <p>All agents have perished. You can start a fresh simulation with a new population.</p>
+      <button class="btn" onclick="startFreshAfterExtinction()">🌱 Start Fresh Simulation</button>
+    </div>
+
+    <div class="ribbon slide-in">
+      <div class="ribbon-section">
+        <div class="ribbon-title">
+          🚀 <span>Evolution Controls</span>
+        </div>
+        <div class="control-group">
+          <div class="control-item">
+            <label class="control-label" for="populationSizeInput">Population Size</label>
+            <input
+              type="number"
+              id="populationSizeInput"
+              class="control-input"
+              value="50"
+              min="10"
+              max="250"
+              step="10"
+            />
+          </div>
+          <div class="control-item">
+            <label class="control-label" for="evolutionStepsInput">Evolution Steps</label>
+            <input
+              type="number"
+              id="evolutionStepsInput"
+              class="control-input"
+              value="1000"
+              min="100"
+              max="10000"
+              step="100"
+            />
+          </div>
+          <div class="control-item">
+            <label class="control-label" for="initialPressureInput">
+              Initial Env. Pressure (<span id="initialPressureValue">0.30</span>)
+            </label>
+            <input
+              type="range"
+              id="initialPressureInput"
+              class="control-input"
+              min="0.01"
+              max="1.50"
+              step="0.01"
+              value="0.30"
+              oninput="document.getElementById('initialPressureValue').textContent = parseFloat(this.value).toFixed(2);"
+            />
+          </div>
+          <button class="btn btn-primary" id="btnStart" onclick="startEvolution()">
+            🧬 Start Evolution
+          </button>
+          <button class="btn btn-warning" onclick="pauseEvolution()">
+            ⏸️ Pause
+          </button>
+          <button class="btn btn-secondary" id="btnReset" onclick="resetEvolution()">
+            🔄 Reset
+          </button>
+          <button class="btn btn-info" id="btnStep" onclick="stepEvolution()">
+            🔁 Step Evolution
+          </button>
+          <button class="btn btn-success" onclick="openArenaWindow()">
+            🕹️ Open Arena
+          </button>
+        </div>
+      </div>
+
+      <div class="ribbon-section">
+        <div class="ribbon-title">
+          📊 <span>Analysis &amp; Visualization</span>
+        </div>
+        <div class="control-group">
+          <button class="btn btn-success" onclick="showCharts()">
+            📈 View Charts
+          </button>
+          <button class="btn btn-info" onclick="downloadChartImage()">
+            🖼️ Download Chart Image
+          </button>
+          <button class="btn btn-success" onclick="exportData()">
+            💾 Export Data
+          </button>
+          <button class="btn btn-success" onclick="showTopPerformers()">
+            🏆 Top Performers
+          </button>
+          <div class="control-item checkbox-item">
+            <input
+              type="checkbox"
+              id="verboseOutputCheckbox"
+              class="control-input"
+              checked
+            />
+            <label class="control-label" for="verboseOutputCheckbox">Verbose Server Logs</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="ribbon-section">
+        <div class="ribbon-title">
+          🌍 <span>Environment Settings</span>
+        </div>
+        <div class="control-group">
+          <div class="control-item">
+            <label class="control-label" for="environmentTypeSelect">Environment Type</label>
+            <select id="environmentTypeSelect" class="control-input">
+              <option value="balanced">Balanced</option>
+              <option value="resource_scarce">Resource Scarce</option>
+              <option value="highly_competitive">Highly Competitive</option>
+              <option value="rapidly_changing">Rapidly Changing</option>
+            </select>
+          </div>
+          <div class="control-item">
+            <label class="control-label" for="environmentPressureInput">
+              Env. Pressure (<span id="envPressureValue">0.30</span>)
+            </label>
+            <input
+              type="range"
+              id="environmentPressureInput"
+              class="control-input"
+              min="0.0"
+              max="2.0"
+              step="0.01"
+              value="0.30"
+              oninput="document.getElementById('envPressureValue').textContent = parseFloat(this.value).toFixed(2);"
+            />
+          </div>
+          <div class="control-item">
+            <label class="control-label" for="resourceAvailabilityInput">
+              Resource Availability (<span id="resourceAvailabilityValue">1.00</span>)
+            </label>
+            <input
+              type="range"
+              id="resourceAvailabilityInput"
+              class="control-input"
+              min="0.1"
+              max="3.0"
+              step="0.01"
+              value="1.00"
+              oninput="document.getElementById('resourceAvailabilityValue').textContent = parseFloat(this.value).toFixed(2);"
+            />
+          </div>
+          <button class="btn btn-primary" onclick="setEnvironment()">
+            🌡️ Set Environment
+          </button>
+          <button class="btn btn-warning" onclick="toggleVerboseLive()">
+            📢 Toggle Verbose
+          </button>
+        </div>
+      </div>
+
+      <div class="ribbon-section">
+        <div class="ribbon-title">
+          💾 <span>Persistence Controls</span>
+        </div>
+        <div class="control-group">
+          <button class="btn btn-secondary" onclick="downloadElite()">
+            ⬇️ Download Elite State
+          </button>
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('uploadSeedInput').click()">
+            <input type="file" id="uploadSeedInput" accept=".pkl" style="display:none" onchange="handleFileSelect(this)"/>
+            <div class="drop-zone-text" id="dropZoneText">Drop .pkl file here or click to browse</div>
+          </div>
+          <button class="btn btn-success" id="btnUpload" onclick="uploadSeed()">
+            📤 Upload Seed
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-panel slide-in">
+      <div class="ribbon-title">
+        📈 <span>Live Ecosystem Metrics</span>
+      </div>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-value" id="currentStep">0</div>
+          <div class="status-label">Current Step</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="population">0</div>
+          <div class="status-label">Population</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="num_species">0</div>
+          <div class="status-label">Num. Species</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="avg_fitness">0.00</div>
+          <div class="status-label">Avg. Fitness</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="max_fitness">0.00</div>
+          <div class="status-label">Max Fitness</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="accuracy">0.00%</div>
+          <div class="status-label">Avg. Accuracy</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="avg_age">0</div>
+          <div class="status-label">Avg. Age</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="avg_cooperation">0.00</div>
+          <div class="status-label">Avg. Cooperation</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="avg_aggression">0.00</div>
+          <div class="status-label">Avg. Aggression</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="avg_stress">0.00</div>
+          <div class="status-label">Avg. Stress</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="speciations_total">0</div>
+          <div class="status-label">Speciations</div>
+        </div>
+        <div class="status-item">
+          <div class="status-value" id="extinctions_total">0</div>
+          <div class="status-label">Extinctions</div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-label" id="progressLabel">Evolution Progress (0/0 steps)</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="evolutionProgress"></div>
+        </div>
+      </div>
+      <div id="chartContainer" style="margin-top: 20px; text-align: center;">
+        <img
+          id="evolutionChartImg"
+          src="{{ url_for('static', filename='placeholder_chart.png') }}"
+          alt="Evolution Chart"
+          style="max-width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none;"
+        />
+      </div>
+    </div>
+
+    <div class="status-panel slide-in">
+      <div class="ribbon-title">
+        💻 <span>System Console</span>
+      </div>
+      <div class="console" id="console">
+        <div class="console-line"><span class="console-emoji">🌱</span>Planting the Neural Seed... Welcome!</div>
+        <div class="console-line"><span class="console-emoji">🚀</span>System Ready. Configure parameters and start evolution.</div>
+        <div class="console-line">============================================================</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let evolutionInterval;
+    let clientConsoleMessageHistory = new Set();
+    let extinctionShown = false;
+
+    // --- Toast notification system ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+    }
+
+    // --- Button state helpers ---
+    function setButtonLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      if (loading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+      } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+    function setSimButtonStates(running) {
+      const btnStart = document.getElementById('btnStart');
+      const btnStep = document.getElementById('btnStep');
+      if (btnStart) btnStart.disabled = running;
+      if (btnStep) btnStep.disabled = running;
+    }
+
+    // --- Drag and drop for upload ---
+    function handleFileSelect(input) {
+      const textEl = document.getElementById('dropZoneText');
+      if (input.files.length) {
+        textEl.className = 'drop-zone-file';
+        textEl.textContent = input.files[0].name;
+      } else {
+        textEl.className = 'drop-zone-text';
+        textEl.textContent = 'Drop .pkl file here or click to browse';
+      }
+    }
+
+    function setupDropZone() {
+      const dropZone = document.getElementById('dropZone');
+      if (!dropZone) return;
+      ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+      });
+      ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+      });
+      dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          const fileInput = document.getElementById('uploadSeedInput');
+          fileInput.files = files;
+          handleFileSelect(fileInput);
+        }
+      });
+    }
+
+    function openArenaWindow() {
+      window.open("/arena", "ArenaWindow", "width=650,height=700");
+    }
+
+    async function fetchApi(endpoint, method = 'GET', body = null) {
+      const options = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (body) options.body = JSON.stringify(body);
+
+      try {
+        const response = await fetch(endpoint, options);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `Server error: ${response.status} ${response.statusText}` }));
+          throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(`API Error (${endpoint}):`, error);
+        updateConsole(`❌ API Error: ${error.message}`);
+        return null;
+      }
+    }
+
+    async function fetchImage(endpoint, asBlob = false) {
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          if (response.status === 404) console.warn(`Image not found at ${endpoint}.`);
+          else throw new Error(`HTTP error fetching image! status: ${response.status}`);
+          return null;
+        }
+        if (asBlob) return await response.blob();
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      } catch (error) {
+        console.error(`Image Fetch Error (${endpoint}):`, error);
+        return null;
+      }
+    }
+
+    async function startEvolution() {
+      setButtonLoading('btnStart', true);
+      document.getElementById('extinctionBanner').style.display = 'none';
+      extinctionShown = false;
+      clientConsoleMessageHistory.clear();
+      updateConsole("🚀 Initiating Evolution simulation...");
+
+      const populationSize = parseInt(document.getElementById('populationSizeInput').value);
+      const evolutionSteps = parseInt(document.getElementById('evolutionStepsInput').value);
+      const initialPressure = parseFloat(document.getElementById('initialPressureInput').value);
+      const verbose = document.getElementById('verboseOutputCheckbox').checked;
+
+      const response = await fetchApi('/start_evolution', 'POST', {
+        populationSize, evolutionSteps, initialPressure, verbose
+      });
+      setButtonLoading('btnStart', false);
+
+      if (response) {
+        showToast('Evolution started!', 'success');
+        updateConsole(`✅ Server: ${response.message || "Evolution started."}`);
+        if (evolutionInterval) clearInterval(evolutionInterval);
+        evolutionInterval = setInterval(fetchAndUpdateStatus, 1800);
+        document.getElementById('evolutionProgress').style.width = '0%';
+        document.getElementById('progressLabel').textContent = `Evolution Progress (0/${evolutionSteps} steps)`;
+        const chartImg = document.getElementById('evolutionChartImg');
+        chartImg.style.display = 'none';
+        setSimButtonStates(true);
+      } else {
+        showToast('Failed to start evolution.', 'error');
+      }
+    }
+
+    async function startFreshAfterExtinction() {
+      document.getElementById('extinctionBanner').style.display = 'none';
+      extinctionShown = false;
+      // Reset first, then start
+      setButtonLoading('btnReset', true);
+      await fetchApi('/reset_evolution', 'POST');
+      setButtonLoading('btnReset', false);
+      resetStatsDisplay();
+      clientConsoleMessageHistory.clear();
+      document.getElementById('console').innerHTML = '';
+      updateConsole("🌱 Starting fresh after extinction...");
+      startEvolution();
+    }
+
+    async function pauseEvolution() {
+      const response = await fetchApi('/pause_evolution', 'POST');
+      if (response) updateConsole(`💬 Server: ${response.message}`);
+    }
+
+    async function resetEvolution() {
+      if (!confirm('Are you sure you want to reset? This will delete the saved population and all simulation state.')) {
+        return;
+      }
+      setButtonLoading('btnReset', true);
+      document.getElementById('extinctionBanner').style.display = 'none';
+      extinctionShown = false;
+      updateConsole("🔄 Resetting simulation environment...");
+      if (evolutionInterval) clearInterval(evolutionInterval);
+      evolutionInterval = setInterval(fetchAndUpdateStatus, 2800);
+
+      const response = await fetchApi('/reset_evolution', 'POST');
+      setButtonLoading('btnReset', false);
+
+      if (response) {
+        showToast('Simulation reset.', 'info');
+        updateConsole(`✅ Server: ${response.message || "Evolution reset."}`);
+        resetStatsDisplay();
+        clientConsoleMessageHistory.clear();
+        document.getElementById('console').innerHTML = '';
+        updateConsole("🔄 System reset. Ready for new simulation.");
+        document.getElementById('evolutionProgress').style.width = '0%';
+        document.getElementById('progressLabel').textContent = `Evolution Progress (0/0 steps)`;
+        const chartImg = document.getElementById('evolutionChartImg');
+        chartImg.style.display = 'none';
+        setSimButtonStates(false);
+      }
+    }
+
+    async function showCharts() {
+      updateConsole("📈 Requesting latest visualization...");
+      const chartDisplay = document.getElementById('evolutionChartImg');
+      const chartUrl = await fetchImage('/chart?' + new Date().getTime());
+
+      if (chartUrl) {
+        chartDisplay.src = chartUrl;
+        chartDisplay.style.display = 'block';
+      } else {
+        updateConsole("⚠️ Chart not available yet.");
+        chartDisplay.style.display = 'none';
+      }
+    }
+
+    async function downloadChartImage() {
+      const imageBlob = await fetchImage('/chart?' + new Date().getTime(), true);
+      if (imageBlob) {
+        const downloadUrl = URL.createObjectURL(imageBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        const now = new Date();
+        const ts = now.getFullYear() +
+          ('0'+(now.getMonth()+1)).slice(-2) +
+          ('0'+now.getDate()).slice(-2) + '_' +
+          ('0'+now.getHours()).slice(-2) +
+          ('0'+now.getMinutes()).slice(-2) +
+          ('0'+now.getSeconds()).slice(-2);
+        link.download = `neural_evolution_chart_${ts}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+        showToast('Chart image downloaded.', 'success');
+      } else {
+        showToast('Chart not available for download.', 'warning');
+      }
+    }
+
+    async function exportData() {
+      updateConsole("💾 Requesting full ecosystem data for export...");
+      const data = await fetchApi('/export_data');
+      if (data && !data.error) {
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const suffix = data.currentStep ? `step_${data.currentStep}` : `export_${Date.now()}`;
+        link.download = `neural_evolution_data_${suffix}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Data exported as JSON.', 'success');
+      } else {
+        showToast(data ? data.error : 'Export failed.', 'error');
+      }
+    }
+
+    async function showTopPerformers() {
+      updateConsole("🏆 Requesting top performing agents...");
+      const performers = await fetchApi('/top_performers');
+      if (performers && !performers.error) {
+        if (performers.length === 0) {
+          updateConsole("ℹ️ No top performers to display.");
+          return;
+        }
+        updateConsole("--- Top Performing Agents ---");
+        performers.forEach((agent, i) => {
+          updateConsole(`  #${i+1}: Agent ${agent.id} (Spc ${agent.species_id}, Gen ${agent.generation})`);
+          updateConsole(`      Fitness: ${agent.fitness?.toFixed(2) ?? 'N/A'}, Energy: ${agent.energy?.toFixed(1) ?? 'N/A'}, Age: ${agent.age}, Offspring: ${agent.offspring_count}`);
+          if (agent.genome?.layers) {
+            updateConsole(`      Genome: L=${JSON.stringify(agent.genome.layers)}, LR=${agent.genome.learning_rate?.toFixed(4) ?? 'N/A'}`);
+            updateConsole(`      Traits: Coop=${agent.genome.cooperation_tendency?.toFixed(2) ?? 'N/A'}, Aggr=${agent.genome.aggression?.toFixed(2) ?? 'N/A'}, StressRes=${agent.genome.stress_resistance?.toFixed(3) ?? 'N/A'}`);
+          }
+        });
+        updateConsole("-----------------------------");
+      } else {
+        showToast(performers ? performers.error : 'Failed to retrieve.', 'error');
+      }
+    }
+
+    async function stepEvolution() {
+      setButtonLoading('btnStep', true);
+      const response = await fetchApi('/step_evolution', 'POST');
+      setButtonLoading('btnStep', false);
+      if (response) {
+        if (response.error) {
+          updateConsole(`❌ Step Error: ${response.error}`);
+        } else {
+          updateConsole(`🔁 ${response.message}`);
+          fetchAndUpdateStatus();
+        }
+      }
+    }
+
+    async function setEnvironment() {
+      const payload = {
+        environmentType: document.getElementById('environmentTypeSelect').value,
+        pressure: parseFloat(document.getElementById('environmentPressureInput').value),
+        resources: parseFloat(document.getElementById('resourceAvailabilityInput').value)
+      };
+      const response = await fetchApi('/set_environment', 'POST', payload);
+      if (response) {
+        showToast('Environment updated.', 'success');
+        updateConsole(`🌍 ${response.message}`);
+      }
+    }
+
+    async function toggleVerboseLive() {
+      const response = await fetchApi('/toggle_verbose', 'POST');
+      if (response) updateConsole(`🎤 ${response.message}`);
+    }
+
+    async function downloadElite() {
+      updateConsole("⬇️ Downloading elite state file...");
+      try {
+        const response = await fetch('/download_elite');
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'best_population.pkl';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('Elite state downloaded.', 'success');
+        } else {
+          const err = await response.json().catch(() => ({ error: `${response.status}` }));
+          showToast(err.error || 'Download failed.', 'error');
+        }
+      } catch (error) {
+        showToast(`Download error: ${error.message}`, 'error');
+      }
+    }
+
+    async function uploadSeed() {
+      const fileInput = document.getElementById('uploadSeedInput');
+      if (!fileInput.files.length) {
+        showToast('No file selected.', 'warning');
+        return;
+      }
+      if (!confirm('Upload this file? This will overwrite the current saved state. The simulation must be stopped first.')) {
+        return;
+      }
+      setButtonLoading('btnUpload', true);
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      updateConsole("📤 Uploading seed file...");
+      try {
+        const response = await fetch('/upload_seed', { method: 'POST', body: formData });
+        const data = await response.json();
+        setButtonLoading('btnUpload', false);
+        if (response.ok) {
+          showToast('Seed file uploaded!', 'success');
+          updateConsole(`✅ ${data.message}`);
+          // Reset drop zone text
+          document.getElementById('dropZoneText').className = 'drop-zone-text';
+          document.getElementById('dropZoneText').textContent = 'Drop .pkl file here or click to browse';
+          fileInput.value = '';
+        } else {
+          showToast(data.error || 'Upload failed.', 'error');
+          updateConsole(`❌ Upload Error: ${data.error}`);
+        }
+      } catch (error) {
+        setButtonLoading('btnUpload', false);
+        showToast(`Upload error: ${error.message}`, 'error');
+      }
+    }
+
+    function updateConsole(message) {
+      const consoleElement = document.getElementById('console');
+      const tempDecoder = document.createElement('div');
+      tempDecoder.innerHTML = message;
+      const cleanMessage = tempDecoder.textContent || tempDecoder.innerText || "";
+
+      const lastLogMessage = consoleElement.lastElementChild?.textContent;
+      if (lastLogMessage === cleanMessage && clientConsoleMessageHistory.has(cleanMessage)) return;
+
+      clientConsoleMessageHistory.add(cleanMessage);
+      if (clientConsoleMessageHistory.size > 200) {
+        clientConsoleMessageHistory.delete(Array.from(clientConsoleMessageHistory.keys())[0]);
+      }
+
+      const line = document.createElement('div');
+      line.className = 'console-line';
+      line.textContent = cleanMessage;
+      consoleElement.appendChild(line);
+      consoleElement.scrollTop = consoleElement.scrollHeight;
+    }
+
+    function updateStatusDisplay(data) {
+      if (!data) return;
+
+      const statsDisplayConfig = {
+        currentStep:       { id: 'currentStep',       serverKey: 'currentStep',       format: (v) => v ?? '0' },
+        population:        { id: 'population',        serverKey: 'population',        format: (v) => v ?? '0' },
+        num_species:       { id: 'num_species',       serverKey: 'num_species',       format: (v) => v ?? '0' },
+        avg_fitness:       { id: 'avg_fitness',       serverKey: 'avg_fitness',       format: (v) => v !== undefined ? parseFloat(v).toFixed(2) : '0.00' },
+        max_fitness:       { id: 'max_fitness',       serverKey: 'max_fitness',       format: (v) => v !== undefined ? parseFloat(v).toFixed(2) : '0.00' },
+        avg_accuracy:      { id: 'accuracy',          serverKey: 'avg_accuracy',      format: (v) => v !== undefined ? (parseFloat(v)*100).toFixed(2)+'%' : '0.00%' },
+        avg_age:           { id: 'avg_age',           serverKey: 'avg_age',           format: (v) => v !== undefined ? Math.round(parseFloat(v)) : '0' },
+        avg_cooperation:   { id: 'avg_cooperation',   serverKey: 'avg_cooperation',   format: (v) => v !== undefined ? parseFloat(v).toFixed(2) : '0.00' },
+        avg_aggression:    { id: 'avg_aggression',    serverKey: 'avg_aggression',    format: (v) => v !== undefined ? parseFloat(v).toFixed(2) : '0.00' },
+        avg_stress:        { id: 'avg_stress',        serverKey: 'avg_stress',        format: (v) => v !== undefined ? parseFloat(v).toFixed(2) : '0.00' },
+        speciations_total: { id: 'speciations_total', serverKey: 'speciations_total', format: (v) => v ?? '0' },
+        extinctions_total: { id: 'extinctions_total', serverKey: 'extinctions_total', format: (v) => v ?? '0' }
+      };
+
+      for (const key in statsDisplayConfig) {
+        const cfg = statsDisplayConfig[key];
+        const el = document.getElementById(cfg.id);
+        const val = data[cfg.serverKey];
+        if (el) {
+          const formatted = cfg.format(val);
+          if (el.textContent !== String(formatted)) {
+            el.textContent = formatted;
+            if (el.parentElement) {
+              el.parentElement.classList.add('pulsing');
+              setTimeout(() => { if (el.parentElement) el.parentElement.classList.remove('pulsing'); }, 1000);
+            }
+          }
+        }
+      }
+
+      // Progress bar
+      const progressBar = document.getElementById('evolutionProgress');
+      const progressLabel = document.getElementById('progressLabel');
+      if (data.totalSteps > 0 && data.currentStep !== undefined) {
+        const pct = Math.min(100, (data.currentStep / data.totalSteps) * 100);
+        progressBar.style.width = `${pct}%`;
+        progressLabel.textContent = `Evolution Progress (${data.currentStep}/${data.totalSteps} steps)`;
+      } else {
+        progressBar.style.width = '0%';
+        progressLabel.textContent = `Evolution Progress (0/${data.totalSteps || 0} steps)`;
+      }
+
+      // Console messages from server
+      if (data.consoleMessages && Array.isArray(data.consoleMessages)) {
+        data.consoleMessages.forEach(msg => updateConsole(msg));
+      }
+
+      // Dynamic status line
+      let html = `Status: <span style="color: #a3bffa;">${data.ecosystemStatusText || 'N/A'}</span>`;
+      html += ` | Env: <span style="color: #7fdbca;">${data.environmentType || 'N/A'}</span>`;
+      html += ` | Pressure: <span style="color: #ffcb8b;">${data.environmentalPressure?.toFixed(2) ?? 'N/A'}</span>`;
+      html += ` | Resources: <span style="color: #c3e88d;">${data.resourceAvailability?.toFixed(2) ?? 'N/A'}</span>`;
+      const statusLine = document.getElementById('dynamicStatusLine');
+      if (statusLine) statusLine.innerHTML = html;
+
+      // Button states
+      setSimButtonStates(data.isRunning);
+
+      // Extinction detection
+      if (data.isExtinct && !extinctionShown) {
+        document.getElementById('extinctionBanner').style.display = 'block';
+        extinctionShown = true;
+        showToast('Ecosystem has gone extinct!', 'error');
+      }
+      if (!data.isExtinct && data.isRunning) {
+        document.getElementById('extinctionBanner').style.display = 'none';
+        extinctionShown = false;
+      }
+
+      // Run finished handling
+      if (!data.isRunning && data.currentStep > 0 &&
+        (data.currentStep >= data.totalSteps ||
+         ['extinct_previous_run', 'finished_completed_run', 'error_in_sim', 'completed_or_reset'].includes(data.ecosystemStatusText))) {
+        if (evolutionInterval) clearInterval(evolutionInterval);
+        evolutionInterval = setInterval(fetchAndUpdateStatus, 3000);
+        if (data.currentStep > 0 && !data.isExtinct) setTimeout(showCharts, 700);
+      }
+    }
+
+    async function fetchAndUpdateStatus() {
+      const data = await fetchApi('/status?' + new Date().getTime());
+      if (data) {
+        updateStatusDisplay(data);
+      } else {
+        const el = document.getElementById('dynamicStatusLine');
+        if (el) el.innerHTML = 'Status: <span style="color: #ff6384;">Connection Error</span>';
+      }
+    }
+
+    function resetStatsDisplay() {
+      const defaults = {
+        currentStep:'0', population:'0', num_species:'0', avg_fitness:'0.00',
+        max_fitness:'0.00', accuracy:'0.00%', avg_age:'0', avg_cooperation:'0.00',
+        avg_aggression:'0.00', avg_stress:'0.00', speciations_total:'0', extinctions_total:'0'
+      };
+      for (const id in defaults) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = defaults[id];
+      }
+      document.getElementById('evolutionProgress').style.width = '0%';
+      document.getElementById('progressLabel').textContent = 'Evolution Progress (0/0 steps)';
+    }
+
+    window.addEventListener('load', () => {
+      const consoleEl = document.getElementById('console');
+      const statusLine = document.createElement('div');
+      statusLine.id = 'dynamicStatusLine';
+      statusLine.innerHTML = 'Status: <span style="color: #a3bffa;">System Loaded. Configure and start evolution.</span>';
+      if (consoleEl.parentNode) consoleEl.parentNode.insertBefore(statusLine, consoleEl.nextSibling);
+
+      // Init slider displays
+      const sliders = [
+        ['initialPressureInput', 'initialPressureValue'],
+        ['environmentPressureInput', 'envPressureValue'],
+        ['resourceAvailabilityInput', 'resourceAvailabilityValue']
+      ];
+      sliders.forEach(([sliderId, displayId]) => {
+        const s = document.getElementById(sliderId);
+        const d = document.getElementById(displayId);
+        if (s && d) d.textContent = parseFloat(s.value).toFixed(2);
+      });
+
+      const envSelect = document.getElementById('environmentTypeSelect');
+      if (envSelect) envSelect.value = 'balanced';
+
+      setupDropZone();
+
+      if (evolutionInterval) clearInterval(evolutionInterval);
+      evolutionInterval = setInterval(fetchAndUpdateStatus, 2500);
+      resetStatsDisplay();
+    });
+  </script>
+</body>
+</html>

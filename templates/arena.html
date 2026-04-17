@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Agent Arena</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      animation: fadeSlideIn 0.6s ease-out forwards;
+      animation-delay: 0.2s;
+      text-align: center;
+      background: linear-gradient(45deg, #00d4ff, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeSlideIn 0.6s ease-out forwards;
+      animation-delay: 0.4s;
+      text-align: center;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #arenaContainer {
+      position: relative;
+      width: min(90vw, 1200px);
+      height: min(70vh, 700px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 
+        0 0 30px rgba(0, 212, 255, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      animation: fadeIn 0.8s ease-out forwards;
+      animation-delay: 0.6s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    #statsPanel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 250px;
+    }
+
+    #controls {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .control-btn {
+      background: rgba(0, 212, 255, 0.2);
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .control-btn:hover {
+      background: rgba(0, 212, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    #speciesLegend {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .species-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 0.75rem;
+    }
+
+    .species-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+    }
+
+    .note {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      text-align: center;
+      max-width: 600px;
+      opacity: 0;
+      animation: fadeSlideIn 0.6s ease-out forwards;
+      animation-delay: 1s;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1rem; }
+      #arenaContainer {
+        width: 95vw;
+        height: 60vh;
+      }
+      .note { font-size: 0.8rem; }
+      #speciesLegend { display: none; }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+  <h1>🌌 3D Neural Evolution Arena</h1>
+  <h2>Real-time 3D visualization of competing AI species</h2>
+
+  <div id="arenaContainer">
+    <div id="statsPanel">
+      <div id="statsContent">Loading...</div>
+    </div>
+    <div id="speciesLegend">
+      <div style="font-weight: bold; margin-bottom: 8px; color: #00d4ff;">Species Legend</div>
+      <div id="speciesContent"></div>
+    </div>
+    <div id="controls">
+      <button class="control-btn" onclick="togglePause()">⏸️ Pause</button>
+      <button class="control-btn" onclick="resetView()">🎯 Reset View</button>
+      <button class="control-btn" onclick="toggleTrails()">✨ Trails</button>
+    </div>
+  </div>
+
+  <div class="note">
+    Immersive 3D arena with WebGL acceleration. Each species has a unique color, agent sizes reflect fitness levels. Mouse to orbit, wheel to zoom. Trails show movement history.
+  </div>
+
+  <script>
+    // Three.js Scene Setup
+    let scene, camera, renderer, raycaster, mouse;
+    let agentGeometry, agentMeshes = [];
+    let trailGeometries = [], trailMeshes = [];
+    let animationId;
+    let isPaused = false;
+    let showTrails = true;
+    let agentPositionHistory = new Map();
+    
+    const TRAIL_LENGTH = 20;
+    const WORLD_SIZE = { x: 100, y: 100, z: 50 };
+
+    // Enhanced camera controls
+    let cameraControls = {
+      radius: 80,
+      theta: 0,
+      phi: Math.PI / 4,
+      target: new THREE.Vector3(WORLD_SIZE.x/2, WORLD_SIZE.y/2, WORLD_SIZE.z/2),
+      minRadius: 20,
+      maxRadius: 200,
+      minPhi: 0.1,
+      maxPhi: Math.PI - 0.1,
+      dampingFactor: 0.05,
+      targetTheta: 0,
+      targetPhi: Math.PI / 4,
+      targetRadius: 80,
+      autoRotate: false,
+      autoRotateSpeed: 0.5
+    };
+
+    // Enhanced species and fitness tracking
+    let lastAgentData = [];
+    let speciesColors = new Map();
+    let speciesStats = new Map();
+    let maxFitness = 1;
+    let minFitness = 0;
+    let fitnessRange = 1;
+
+    // Predefined vibrant colors for better species distinction
+    const SPECIES_COLOR_PALETTE = [
+      0xff6b6b, // Red
+      0x4ecdc4, // Teal
+      0x45b7d1, // Blue
+      0x96ceb4, // Green
+      0xfeca57, // Yellow
+      0xff9ff3, // Pink
+      0x54a0ff, // Light Blue
+      0x5f27cd, // Purple
+      0x00d2d3, // Cyan
+      0xff9f43, // Orange
+      0x1dd1a1, // Mint
+      0xc44569, // Dark Pink
+      0x3867d6, // Royal Blue
+      0x8395a7, // Gray Blue
+      0x2ed573, // Lime Green
+      0xf368e0, // Magenta
+      0x26de81, // Sea Green
+      0xfd79a8, // Hot Pink
+      0x6c5ce7, // Lavender
+      0xa29bfe  // Light Purple
+    ];
+
+    // Initialize Three.js
+    function initThreeJS() {
+      const container = document.getElementById('arenaContainer');
+      
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0a1a);
+      
+      // Add fog for depth
+      scene.fog = new THREE.Fog(0x0a0a1a, 50, 200);
+
+      // Camera
+      camera = new THREE.PerspectiveCamera(
+        75, 
+        container.clientWidth / container.clientHeight, 
+        0.1, 
+        1000
+      );
+      
+      // Set initial camera position
+      updateCameraPosition();
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // Raycaster and mouse for interactions
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      // Add ambient lighting
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+      scene.add(ambientLight);
+
+      // Add directional light
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(50, 50, 50);
+      directionalLight.castShadow = true;
+      scene.add(directionalLight);
+
+      // Add arena boundaries
+      createArenaBoundaries();
+
+      // Add particle system for background stars
+      createStarField();
+
+      // Mouse controls
+      setupMouseControls();
+
+      // Handle window resize
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function updateCameraPosition() {
+      // Convert spherical coordinates to cartesian
+      const x = cameraControls.target.x + cameraControls.radius * Math.sin(cameraControls.phi) * Math.cos(cameraControls.theta);
+      const y = cameraControls.target.y + cameraControls.radius * Math.cos(cameraControls.phi);
+      const z = cameraControls.target.z + cameraControls.radius * Math.sin(cameraControls.phi) * Math.sin(cameraControls.theta);
+      
+      camera.position.set(x, y, z);
+      camera.lookAt(cameraControls.target);
+    }
+
+    function createArenaBoundaries() {
+      const edges = new THREE.EdgesGeometry(
+        new THREE.BoxGeometry(WORLD_SIZE.x, WORLD_SIZE.y, WORLD_SIZE.z)
+      );
+      const line = new THREE.LineSegments(
+        edges, 
+        new THREE.LineBasicMaterial({ 
+          color: 0x00d4ff, 
+          opacity: 0.3, 
+          transparent: true 
+        })
+      );
+      line.position.set(WORLD_SIZE.x/2, WORLD_SIZE.y/2, WORLD_SIZE.z/2);
+      scene.add(line);
+    }
+
+    function createStarField() {
+      const starGeometry = new THREE.BufferGeometry();
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.8
+      });
+
+      const starVertices = [];
+      for (let i = 0; i < 1000; i++) {
+        starVertices.push(
+          (Math.random() - 0.5) * 400,
+          (Math.random() - 0.5) * 400,
+          (Math.random() - 0.5) * 400
+        );
+      }
+
+      starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+      const stars = new THREE.Points(starGeometry, starMaterial);
+      scene.add(stars);
+    }
+
+    function setupMouseControls() {
+      let isMouseDown = false;
+      let mouseDownPosition = { x: 0, y: 0 };
+      let isAnimatingToTarget = false;
+
+      const container = document.getElementById('arenaContainer');
+
+      container.addEventListener('mousedown', (event) => {
+        isMouseDown = true;
+        mouseDownPosition.x = event.clientX;
+        mouseDownPosition.y = event.clientY;
+        isAnimatingToTarget = false;
+        cameraControls.autoRotate = false;
+        container.style.cursor = 'grabbing';
+      });
+
+      container.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        container.style.cursor = 'grab';
+      });
+
+      container.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+        container.style.cursor = 'default';
+      });
+
+      container.addEventListener('mousemove', (event) => {
+        if (isMouseDown && !isAnimatingToTarget) {
+          const deltaX = event.clientX - mouseDownPosition.x;
+          const deltaY = event.clientY - mouseDownPosition.y;
+          
+          cameraControls.targetTheta += deltaX * 0.01;
+          cameraControls.targetPhi += deltaY * 0.01;
+          
+          cameraControls.targetPhi = Math.max(
+            cameraControls.minPhi, 
+            Math.min(cameraControls.maxPhi, cameraControls.targetPhi)
+          );
+          
+          mouseDownPosition.x = event.clientX;
+          mouseDownPosition.y = event.clientY;
+        }
+      });
+
+      container.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const delta = event.deltaY;
+        cameraControls.targetRadius += delta * 0.1;
+        cameraControls.targetRadius = Math.max(
+          cameraControls.minRadius, 
+          Math.min(cameraControls.maxRadius, cameraControls.targetRadius)
+        );
+      });
+
+      container.style.cursor = 'grab';
+
+      function animateCamera() {
+        cameraControls.theta += (cameraControls.targetTheta - cameraControls.theta) * cameraControls.dampingFactor;
+        cameraControls.phi += (cameraControls.targetPhi - cameraControls.phi) * cameraControls.dampingFactor;
+        cameraControls.radius += (cameraControls.targetRadius - cameraControls.radius) * cameraControls.dampingFactor;
+        
+        if (cameraControls.autoRotate) {
+          cameraControls.targetTheta += cameraControls.autoRotateSpeed * 0.01;
+        }
+        
+        updateCameraPosition();
+        requestAnimationFrame(animateCamera);
+      }
+      animateCamera();
+    }
+
+    function generateSpeciesColor(speciesId) {
+      if (speciesColors.has(speciesId)) {
+        return speciesColors.get(speciesId);
+      }
+      
+      // Use predefined color palette for better distinction
+      const colorIndex = speciesColors.size % SPECIES_COLOR_PALETTE.length;
+      const color = new THREE.Color(SPECIES_COLOR_PALETTE[colorIndex]);
+      speciesColors.set(speciesId, color);
+      return color;
+    }
+
+    function calculateFitnessMetrics() {
+      if (lastAgentData.length === 0) return;
+      
+      const fitnesses = lastAgentData.map(a => a.fitness);
+      maxFitness = Math.max(...fitnesses);
+      minFitness = Math.min(...fitnesses);
+      fitnessRange = maxFitness - minFitness;
+      
+      // Ensure minimum range to prevent division by zero
+      if (fitnessRange === 0) {
+        fitnessRange = 1;
+      }
+    }
+
+    function getFitnessRatio(fitness) {
+      // Normalize fitness to 0-1 range based on current population
+      return fitnessRange > 0 ? (fitness - minFitness) / fitnessRange : 0.5;
+    }
+
+    function createAgentMesh(agent, index) {
+      // Enhanced size calculation based on normalized fitness
+      const fitnessRatio = getFitnessRatio(agent.fitness);
+      const baseSize = 0.3;
+      const maxSize = 2.5;
+      const size = baseSize + fitnessRatio * (maxSize - baseSize);
+      
+      // Create geometry - use sphere for better 3D appearance
+      const geometry = new THREE.SphereGeometry(size, 12, 12);
+      
+      // Create material with species color
+      const color = generateSpeciesColor(agent.species);
+      const material = new THREE.MeshPhongMaterial({
+        color: color,
+        emissive: color.clone().multiplyScalar(0.15 + fitnessRatio * 0.1),
+        shininess: 50 + fitnessRatio * 100,
+        transparent: true,
+        opacity: 0.7 + fitnessRatio * 0.3
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      // Position in 3D space with more dynamic Z positioning
+      mesh.position.set(
+        agent.x,
+        agent.y,
+        Math.sin(Date.now() * 0.001 + index * 0.1) * 8 + WORLD_SIZE.z/2
+      );
+
+      // Enhanced userData with more information
+      mesh.userData = {
+        originalSize: size,
+        generation: agent.generation,
+        species: agent.species,
+        fitness: agent.fitness,
+        fitnessRatio: fitnessRatio,
+        baseY: agent.y,
+        phase: index * 0.1,
+        agentIndex: index
+      };
+
+      return mesh;
+    }
+
+    function updateSpeciesStats() {
+      speciesStats.clear();
+      
+      lastAgentData.forEach(agent => {
+        const speciesId = agent.species;
+        if (!speciesStats.has(speciesId)) {
+          speciesStats.set(speciesId, {
+            count: 0,
+            totalFitness: 0,
+            maxFitness: agent.fitness,
+            minFitness: agent.fitness,
+            color: generateSpeciesColor(speciesId)
+          });
+        }
+        
+        const stats = speciesStats.get(speciesId);
+        stats.count++;
+        stats.totalFitness += agent.fitness;
+        stats.maxFitness = Math.max(stats.maxFitness, agent.fitness);
+        stats.minFitness = Math.min(stats.minFitness, agent.fitness);
+      });
+    }
+
+    function updateSpeciesLegend() {
+      const speciesContent = document.getElementById('speciesContent');
+      const sortedSpecies = Array.from(speciesStats.entries())
+        .sort((a, b) => b[1].count - a[1].count); // Sort by population size
+      
+      let legendHTML = '';
+      sortedSpecies.forEach(([speciesId, stats]) => {
+        const avgFitness = (stats.totalFitness / stats.count).toFixed(1);
+        const colorHex = `#${stats.color.getHexString()}`;
+        
+        legendHTML += `
+          <div class="species-item">
+            <div class="species-color" style="background-color: ${colorHex};"></div>
+            <div>
+              <div>S${speciesId} (${stats.count})</div>
+              <div style="opacity: 0.7; font-size: 0.7rem;">Avg: ${avgFitness}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      speciesContent.innerHTML = legendHTML;
+    }
+
+    function updateTrails() {
+      if (!showTrails) return;
+
+      lastAgentData.forEach((agent, index) => {
+        const agentId = `${agent.species}_${index}`;
+        
+        if (!agentPositionHistory.has(agentId)) {
+          agentPositionHistory.set(agentId, []);
+        }
+        
+        const history = agentPositionHistory.get(agentId);
+        history.push({ x: agent.x, y: agent.y, z: WORLD_SIZE.z/2 });
+        
+        if (history.length > TRAIL_LENGTH) {
+          history.shift();
+        }
+        
+        if (history.length > 1) {
+          updateTrailMesh(agentId, history, generateSpeciesColor(agent.species));
+        }
+      });
+    }
+
+    function updateTrailMesh(agentId, positions, color) {
+      const existingTrail = scene.getObjectByName(`trail_${agentId}`);
+      if (existingTrail) {
+        scene.remove(existingTrail);
+      }
+
+      if (positions.length < 2) return;
+
+      const points = positions.map(pos => new THREE.Vector3(pos.x, pos.y, pos.z));
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      
+      const material = new THREE.LineBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.4,
+        linewidth: 2
+      });
+
+      const trail = new THREE.Line(geometry, material);
+      trail.name = `trail_${agentId}`;
+      scene.add(trail);
+    }
+
+    function updateAgents() {
+      // Calculate fitness metrics first
+      calculateFitnessMetrics();
+      
+      // Remove old agent meshes
+      agentMeshes.forEach(mesh => scene.remove(mesh));
+      agentMeshes = [];
+
+      // Create new agent meshes
+      lastAgentData.forEach((agent, index) => {
+        const mesh = createAgentMesh(agent, index);
+        scene.add(mesh);
+        agentMeshes.push(mesh);
+      });
+
+      updateTrails();
+      updateSpeciesStats();
+      updateSpeciesLegend();
+    }
+
+    function animateAgents() {
+      const time = Date.now() * 0.001;
+      
+      agentMeshes.forEach((mesh, index) => {
+        // Enhanced pulsing based on fitness ratio
+        const fitnessRatio = mesh.userData.fitnessRatio;
+        const pulseIntensity = 0.1 + fitnessRatio * 0.2;
+        const pulseScale = 1 + Math.sin(time * 2 + mesh.userData.phase) * pulseIntensity;
+        mesh.scale.setScalar(pulseScale);
+        
+        // Dynamic floating motion based on fitness
+        const floatAmplitude = 2 + fitnessRatio * 4;
+        mesh.position.z = WORLD_SIZE.z/2 + Math.sin(time * 0.8 + mesh.userData.phase) * floatAmplitude;
+        
+        // Rotation speed based on fitness
+        const rotationSpeed = 0.005 + fitnessRatio * 0.01;
+        mesh.rotation.y += rotationSpeed;
+        mesh.rotation.x += rotationSpeed * 0.5;
+        
+        // Subtle color pulsing for high-fitness agents
+        if (fitnessRatio > 0.8) {
+          const emissiveIntensity = 0.2 + Math.sin(time * 3 + mesh.userData.phase) * 0.1;
+          mesh.material.emissive = generateSpeciesColor(mesh.userData.species).clone().multiplyScalar(emissiveIntensity);
+        }
+      });
+    }
+
+    function updateStats() {
+      const statsContent = document.getElementById('statsContent');
+      const totalAgents = lastAgentData.length;
+      const speciesCount = speciesStats.size;
+      const avgFitness = totalAgents > 0 ? 
+        (lastAgentData.reduce((sum, a) => sum + a.fitness, 0) / totalAgents).toFixed(2) : 0;
+
+      statsContent.innerHTML = `
+        <div><strong>Total Agents:</strong> ${totalAgents}</div>
+        <div><strong>Species Count:</strong> ${speciesCount}</div>
+        <div><strong>Avg Fitness:</strong> ${avgFitness}</div>
+        <div><strong>Max Fitness:</strong> ${maxFitness.toFixed(2)}</div>
+        <div><strong>Min Fitness:</strong> ${minFitness.toFixed(2)}</div>
+        <div><strong>Fitness Range:</strong> ${fitnessRange.toFixed(2)}</div>
+        <div style="margin-top: 5px; font-size: 0.8rem; opacity: 0.8;">Size reflects fitness level</div>
+      `;
+    }
+
+    // Mock data generator for demonstration
+    function generateMockData() {
+      const agents = [];
+      const numSpecies = 8;
+      const agentsPerSpecies = Math.floor(Math.random() * 10) + 5;
+      
+      for (let species = 1; species <= numSpecies; species++) {
+        const speciesAgentCount = Math.floor(Math.random() * agentsPerSpecies) + 3;
+        const speciesBaseFitness = Math.random() * 50 + 10;
+        
+        for (let i = 0; i < speciesAgentCount; i++) {
+          agents.push({
+            x: Math.random() * WORLD_SIZE.x,
+            y: Math.random() * WORLD_SIZE.y,
+            species: species,
+            fitness: speciesBaseFitness + (Math.random() - 0.5) * 30,
+            generation: Math.floor(Math.random() * 100) + 1,
+            id: `agent_${species}_${i}`
+          });
+        }
+      }
+      
+      return {
+        agents: agents,
+        max_fitness: Math.max(...agents.map(a => a.fitness))
+      };
+    }
+
+    async function fetchArenaData() {
+      try {
+        const response = await fetch("/arena_data");
+        let data;
+        
+        if (!response.ok) {
+          // Use mock data for demonstration
+          data = generateMockData();
+        } else {
+          data = await response.json();
+        }
+        
+        lastAgentData = data.agents || [];
+        
+        updateAgents();
+        updateStats();
+      } catch (error) {
+        console.warn("Error fetching arena data, using mock data:", error);
+        const data = generateMockData();
+        lastAgentData = data.agents || [];
+        updateAgents();
+        updateStats();
+      }
+    }
+
+    function animate() {
+      if (!isPaused) {
+        animateAgents();
+        renderer.render(scene, camera);
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('arenaContainer');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    // Control functions
+    function togglePause() {
+      isPaused = !isPaused;
+      const btn = event.target;
+      btn.textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
+    }
+
+    function resetView() {
+      const duration = 1000;
+      const startTime = Date.now();
+      
+      const startTheta = cameraControls.theta;
+      const startPhi = cameraControls.phi;
+      const startRadius = cameraControls.radius;
+      
+      const targetTheta = 0;
+      const targetPhi = Math.PI / 4;
+      const targetRadius = 80;
+      
+      function animateReset() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        cameraControls.theta = startTheta + (targetTheta - startTheta) * easeProgress;
+        cameraControls.phi = startPhi + (targetPhi - startPhi) * easeProgress;
+        cameraControls.radius = startRadius + (targetRadius - startRadius) * easeProgress;
+        
+        cameraControls.targetTheta = cameraControls.theta;
+        cameraControls.targetPhi = cameraControls.phi;
+        cameraControls.targetRadius = cameraControls.radius;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animateReset);
+        }
+      }
+      
+      animateReset();
+    }
+
+    function toggleTrails() {
+      showTrails = !showTrails;
+      const btn = event.target;
+      btn.textContent = showTrails ? '✨ Trails' : '🚫 Trails';
+      
+      if (!showTrails) {
+        scene.children.filter(child => child.name && child.name.startsWith('trail_'))
+          .forEach(trail => scene.remove(trail));
+      }
+    }
+
+    // Initialize everything
+    window.addEventListener('load', () => {
+      initThreeJS();
+      animate();
+      fetchArenaData();
+      setInterval(fetchArenaData, 1200);
+    });
+  </script>
+</body>
+</html>
